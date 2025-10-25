@@ -1,10 +1,9 @@
-import { Subscription, UserDetails } from "@/lib/types";
-import { User } from "@supabase/auth-helpers-nextjs";
-import {
-  useSessionContext,
-  useUser as useSupaUser,
-} from "@supabase/auth-helpers-react";
+"use client";
+
+import { createBrowserClient } from "@supabase/ssr";
 import { createContext, useContext, useEffect, useState } from "react";
+import { Subscription, UserDetails } from "@/lib/types";
+import type { User, Session } from "@supabase/supabase-js";
 
 type UserContextType = {
   accessToken: string | null;
@@ -22,60 +21,62 @@ export interface Props {
   [propName: string]: any;
 }
 
+// Create a browser Supabase client
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!
+);
+
 export const MyUserContextProvider = (props: Props) => {
-  const {
-    session,
-    isLoading: isLoadingUser,
-    supabaseClient: supabase,
-  } = useSessionContext();
-
-  const user = useSupaUser();
-
-  const accessToken = session?.access_token ?? null;
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getUserDetails = () => supabase.from("users").select("*").single();
-
-  const getSubscriptions = () =>
-    supabase
-      .from("subscriptions")
-      .select("*, prices(*, products(*))")
-      .in("status", ["trailing", "active"])
-      .single();
-
+  // Fetch current session and user
   useEffect(() => {
-    if (user && !isLoadingData && !userDetails && !subscription) {
-      setIsLoadingData(true);
+    const getSessionAndUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    };
+    getSessionAndUser();
+  }, []);
 
-      Promise.allSettled([getUserDetails(), getSubscriptions()]).then(
-        (result) => {
-          const userDetailsPromise = result[0];
-          const subsriptionPromise = result[1];
+  // Fetch user details and subscription when user changes
+  useEffect(() => {
+    const getUserDetails = async () => {
+      if (user) {
+        setIsLoading(true);
+        const [{ data: userData }, { data: subData }] = await Promise.all([
+          supabase.from("users").select("*").single(),
+          supabase
+            .from("subscriptions")
+            .select("*, prices(*, products(*))")
+            .in("status", ["trailing", "active"])
+            .single(),
+        ]);
 
-          if (userDetailsPromise.status === "fulfilled") {
-            setUserDetails(userDetailsPromise.value.data as UserDetails);
-          }
+        setUserDetails(userData as UserDetails);
+        setSubscription(subData as Subscription);
+        setIsLoading(false);
+      } else {
+        setUserDetails(null);
+        setSubscription(null);
+      }
+    };
+    getUserDetails();
+  }, [user]);
 
-          if (subsriptionPromise.status === "fulfilled") {
-            setSubscription(subsriptionPromise.value.data as Subscription);
-          }
-
-          setIsLoadingData(false);
-        }
-      );
-    } else if (!user && !isLoadingUser && !isLoadingData) {
-      setUserDetails(null);
-      setSubscription(null);
-    }
-  }, [user, isLoadingUser]);
-
-  const value = {
-    accessToken,
+  const value: UserContextType = {
+    accessToken: session?.access_token ?? null,
     user,
     userDetails,
-    isLoading: isLoadingUser || isLoadingData,
+    isLoading,
     subscription,
   };
 
@@ -84,9 +85,7 @@ export const MyUserContextProvider = (props: Props) => {
 
 export const useUser = () => {
   const context = useContext(UserContext);
-  if (context === undefined) {
-    throw new Error("userUser must be used within a ContextProvider");
-  }
-
+  if (context === undefined)
+    throw new Error("useUser must be used within a MyUserContextProvider");
   return context;
 };
