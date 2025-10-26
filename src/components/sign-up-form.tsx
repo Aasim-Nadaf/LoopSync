@@ -52,7 +52,7 @@ export default function SignUpForm({
       if (error) throw error;
       router.push("/auth/sign-up-success");
       toast.success(
-        "You&apos;ve successfully signed up. Please check your email to confirm your account before signing in."
+        "You've successfully signed up. Please check your email to confirm your account before signing in."
       );
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");

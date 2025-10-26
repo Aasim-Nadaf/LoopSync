@@ -1,8 +1,9 @@
+"use client";
+
 import * as React from "react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -19,17 +20,12 @@ import {
   Music,
   PenLine,
   PlayCircle,
-  Radio,
+  Search,
   User,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-const user = {
-  name: "shadcn",
-  email: "m@example.com",
-  avatar: "https://github.com/evilrabbit.png",
-};
+import { usePathname } from "next/navigation";
 
 const data = {
   versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
@@ -40,19 +36,13 @@ const data = {
       items: [
         {
           title: "Listen Now",
-          url: "#",
+          url: "/",
           icon: PlayCircle,
-          isActive: true,
         },
         {
-          title: "Browse",
-          url: "#",
-          icon: Grid,
-        },
-        {
-          title: "Radio",
-          url: "#",
-          icon: Radio,
+          title: "Search",
+          url: "/search",
+          icon: Search,
         },
       ],
     },
@@ -87,43 +77,29 @@ const data = {
         },
       ],
     },
-    // {
-    //   title: "Playlists",
-    //   url: "#",
-    //   items: [
-    //     {
-    //       title: "Recently Added",
-    //       url: "#",
-    //       icon: ListMusic,
-    //     },
-    //     {
-    //       title: "Recently Played",
-    //       url: "#",
-    //       icon: ListMusic,
-    //     },
-    //   ],
-    // },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="#">
+              <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Image
-                    src={"logo-black.svg"}
+                    src={"/logo-black.svg"}
                     alt="logo-black"
                     className="dark:invert"
                     height={30}
                     width={30}
                   />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight ">
+                <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold text-2xl">
                     LoopSync
                   </span>
@@ -144,17 +120,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {item.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+                {item.items.map((subItem) => (
+                  <SidebarMenuItem key={subItem.title}>
                     <SidebarMenuButton
                       asChild
-                      isActive={item.isActive}
-                      tooltip={item.title}
+                      isActive={pathname === subItem.url}
+                      tooltip={subItem.title}
                     >
-                      <a href={item.url}>
-                        <item.icon className="" />
-                        {item.title}
-                      </a>
+                      <Link href={subItem.url}>
+                        <subItem.icon />
+                        {subItem.title}
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -163,7 +139,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter>{/* <UserButton showUserInfo /> */}</SidebarFooter>
+
       <SidebarRail />
     </Sidebar>
   );

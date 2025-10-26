@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import SupabaseProvider from "../../providers/SupabaseProvider";
 import UserProvider from "../../providers/UserProvider";
 import { Toaster } from "@/components/ui/sonner";
+import MusicPlayer from "@/components/MusicPlayer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SupabaseProvider>
-            <UserProvider>{children}</UserProvider>
+            <UserProvider>
+              {children}
+              <MusicPlayer />
+            </UserProvider>
           </SupabaseProvider>
           <Toaster position="top-right" />
         </ThemeProvider>

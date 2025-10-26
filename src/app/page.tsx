@@ -32,7 +32,6 @@ export default async function Home() {
             <PodcastsTab />
           </TabsContent>
         </Tabs>
-        <MusicPlayer />
       </SidebarInset>
     </SidebarProvider>
   );

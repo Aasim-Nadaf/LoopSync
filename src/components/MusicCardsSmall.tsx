@@ -35,7 +35,7 @@ const ListenNow = ({ data, onClick }: MusicCardProps) => {
         src={image || "/music-1.jpg"}
         alt={data.title}
         loading="eager"
-        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-200 ease-linear"
+        className="w-52 h-60 object-cover group-hover:scale-105 transition-all duration-200 ease-linear"
       />
 
       {/* Gradient Overlay */}
@@ -73,7 +73,7 @@ interface CardProps {
   song: Song[];
 }
 
-const MusicCards = ({ song }: CardProps) => {
+const MusicCardsSmall = ({ song }: CardProps) => {
   const onPlay = useOnPlay(song);
 
   if (song.length === 0) {
@@ -98,4 +98,4 @@ const MusicCards = ({ song }: CardProps) => {
   );
 };
 
-export default MusicCards;
+export default MusicCardsSmall;
